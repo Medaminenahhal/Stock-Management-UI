@@ -1,0 +1,145 @@
+<div class="d-flex justify-content-center">
+  <div class="card border-danger mb-3" style="max-width: 18rem;" >
+    <div class="card-header">Products</div>
+    <div class="card-body text-danger">
+      <p class="card-text">products number :</p>
+      <h5 class="card-title">{{productsNumber}}</h5>
+      
+    </div>
+  </div>
+  </div>
+<div class="container" id = "main-container">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Price</th>
+          <th scope="col">Category</th>
+          <th scope="col" style="text-align: center;">Actions</th>
+        </tr>
+        
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of products">
+          
+          <td>{{product.name}}</td>
+          <td>{{product.price}} dh</td>
+          <td>
+            <div *ngFor="let category of categories">
+              <div *ngIf="category.id === product.category_id">
+                {{ category.name }}
+              </div>
+            </div>
+          </td>
+          
+          
+          
+          <td style="display: flex; justify-content: space-around;">
+            
+            <button (click)="onOpenModal(product, 'update')" class="btn btn-warning" style="border-radius: 5px;"  data-toggle="modal" data-target="#updateProductModal"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button (click)="onOpenModal(product, 'delete')"class="btn btn-danger"  style="border-radius: 5px;"><i class="fa-solid fa-trash-can"></i></button>
+          </td>
+        </tr>
+        
+      </tbody>
+
+    </table>
+    <button class="btn btn-primary"><a class="nav-link" style="color: aliceblue; border-radius: 5px;" (click)="onOpenModal(null, 'add')">Add Product <span class="sr-only">(current)</span></a></button>
+    <!-- addProductModal -->
+    <div class="modal fade" id="addProduct" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form #addForm="ngForm" (ngSubmit)="onAddProduct(addForm)">
+              <div class="form-group">
+                 <label for="name">Name</label>
+                 <input type="text" ngModel name="name" class="form-control" id="name" placeholder="Name" required>
+              </div>
+              <div class="form-group">
+                 <label for="price">Price</label>
+                 <input type="text" ngModel name="price" class="form-control" id="price" placeholder="Price" required>
+              </div>
+              <div class="form-group">
+                 <label for="category_id">Category</label>
+                 <select class="form-select mt-1"  aria-label="Default select example" (ngModelChange)="onSelectCategory($event)" name="category"  [ngModel]="selectedCategory">
+                  <option *ngFor="let category of categories" value={{category.id}} [ngValue]="category">
+                    {{category.name}}
+                  </option>
+                  </select>
+                
+              </div>
+              
+              <div class="modal-footer">
+                 <button type="button" id="add-product-form" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                 <button  [disabled]="addForm.invalid" type="submit"    >Save changes</button>
+              </div>
+              </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <!-- updateProductModal -->
+    <div class="modal fade" id="updateProduct" tabindex="-1" role="dialog" aria-labelledby="employeeEditModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="updateProductModalLabel">Edit Product {{editProduct?.name}}</h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+               </button>
+            </div>
+            <div class="modal-body">
+               <form #editForm="ngForm">
+                  <div class="form-group">
+                     <label for="name">Name</label>
+                     <input type="text" ngModel="{{editProduct.name}}" name="name" class="form-control" id="name" aria-describedby="emailHelp" placeholder="Name">
+                  </div>
+                  <input type="hidden" ngModel="{{editProduct.id}}" name="id" class="form-control" id="id" placeholder="Email">
+                  <div class="form-group">
+                     <label for="price">Price</label>
+                     <input type="text" ngModel="{{editProduct.price}}" name="price" class="form-control" id="price" placeholder="Price">
+                  </div>
+                  <div class="form-group">
+                    <label for="category_id">Category</label>
+                    <select class="form-select" (ngModelChange)="onSelectCategory($event)" name="category"  [ngModel]="selectedCategory">
+                     <option *ngFor="let category of categories" value={{category.id}} [ngValue]="category">
+                       {{category.name}}
+                     </option>
+                     </select> 
+                 </div>
+                  <div class="modal-footer">
+                     <button type="button" id="add-product-form"  data-dismiss="modal" class="btn btn-secondary">Close</button>
+                     <button (click)="onUpdateEmloyee(editForm)" data-dismiss="modal" class="btn btn-primary" >Save changes</button>
+                  </div>
+               </form>
+            </div>
+         </div>
+      </div>
+    </div>
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="deleteModelLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="deleteModelLabel">Delete Employee</h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+               </button>
+            </div>
+            <div class="modal-body">
+               <p>Are you sure you want to delete product {{deleteProduct?.name}}?</p>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                  <button (click)="onDeleteProduct(deleteProduct?.id)" class="btn btn-danger" data-dismiss="modal">Yes</button>
+               </div>
+            </div>
+         </div>
+      </div>
+    </div>
