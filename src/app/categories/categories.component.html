@@ -1,20 +1,18 @@
-<div class="d-flex justify-content-center">
-<div class="card border-danger mb-3" style="max-width: 18rem;" >
-  <div class="card-header">Categories</div>
-  <div class="card-body text-danger">
-    <p class="card-text">Categories number :</p>
-    <h5 class="card-title">{{categoriesNumber}}</h5>
-    
-  </div>
-</div>
-</div>
+
 
 <div class="container" id = "main-container">
+  <div *ngIf="showAlert" class="alert alert-success" role="alert">
+    Added successfully!
+  </div>
+  <button  *ngIf ="isAdmin" class="btn btn-primary"><a class="nav-link" style="color: aliceblue; border-radius: 5px;" (click)="onOpenModal(null, 'add')">Add Category <span class="sr-only">(current)</span></a></button>
+
   <table class="table table-hover">
     <thead>
       <tr>
         <th scope="col">Name</th>
-        <th scope="col" style="text-align: center;">Actions</th>
+        <th scope="col">Created At :</th>
+        <th scope="col">Updated At :</th>
+        <th *ngIf ="isAdmin" scope="col" style="text-align: center;">Actions</th>
       </tr>
       
     </thead>
@@ -22,15 +20,24 @@
       <tr *ngFor="let category of categories">
         
         <td>{{category.name}}</td>
-        <td style="display: flex; justify-content: space-around;">
-          <button (click)="onOpenModal(category, 'update')" class="btn btn-warning" style="border-radius: 5px;"  data-toggle="modal" data-target="#updateCategoryModal"><i class="fa-solid fa-pen-to-square"></i></button>
-          <button (click)="onOpenModal(category, 'delete')"class="btn btn-danger"  style="border-radius: 5px;"><i class="fa-solid fa-trash-can"></i></button>
+        <td>{{category.datecreation | date:'yyyy-MM-dd HH:mm' }}</td>
+        <td *ngIf = " category.datemodification !==null" > {{ category.datemodification|date:'yyyy-MM-dd HH:mm' }}</td>
+        <td *ngIf = " category.datemodification ==null" > Never updated</td>
+        <td *ngIf ="isAdmin" style="display: flex; justify-content: space-around;">
+          <button (click)="onOpenModal(category, 'update')" class="btn btn-outline-warning" style="border-radius: 5px;"  data-toggle="modal" data-target="#updateCategoryModal"><i class="fa-solid fa-pen-to-square"></i></button>
+          <button (click)="onOpenModal(category, 'delete')"class="btn btn-outline-danger"  style="border-radius: 5px;"><i class="fa-solid fa-trash-can"></i></button>
         </td>
       </tr>
       
     </tbody>
   </table>
-  <button class="btn btn-primary"><a class="nav-link" style="color: aliceblue; border-radius: 5px;" (click)="onOpenModal(null, 'add')">Add Category <span class="sr-only">(current)</span></a></button>
+  <div class="text-center">
+    <ul class="pagination">
+      <li class="page-item" *ngFor="let pageNumber of getPageNumbers()" [class.active]="pageNumber === page">
+        <a class="page-link mx-1" (click)="changePage(pageNumber)">{{ pageNumber + 1 }}</a>
+      </li>
+    </ul>
+  </div>
   <!-- addCategoryModal -->
   <div class="modal fade" id="addCategory" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">

@@ -17,35 +17,76 @@
     <p *ngIf="test">This is a paragraph</p>
   </div>-->
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Products Management</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/dashboard">Stock Management</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-  
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-          <a class="nav-link" routerLink="/products">Products <span class="sr-only">(current)</span></a>
+    <div class="collapse navbar-collapse" id="navbarText">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li  *ngIf="existingToken!=null && isAdmin===true" class="nav-item">
+          <a class="nav-link active" aria-current="page"  routerLink="/users">Users</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/categories">Categories</a>
+       
+        <li *ngIf="existingToken!=null && isAdmin===true" class="nav-item">
+          <a class="nav-link active"routerLink="/products">Products</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/register">register</a>
+        <li *ngIf="existingToken!=null && isAdmin===true" class="nav-item">
+          <a class="nav-link active"routerLink="/categories">Categories</a>
         </li>
-        <li class="nav-item">
-          <button type = "submit" class = "btn btn-default" (click)="logOut()">LogOut</button>
+        <li *ngIf="existingToken" class="nav-item">
+          <a class="nav-link active"routerLink="/orders">Orders</a>
         </li>
-        
+        <li *ngIf="existingToken==null" class="nav-item">
+          <a class="nav-link active"routerLink="/register">Sign Up</a>
+        </li>
+       
       </ul>
-      
+      <span class="navbar-text">
+        <a class=" nav-link me-5" style="cursor: pointer;" (click)="logOut()">LogOut <i class="fa-solid fa-right-from-bracket"></i></a>
+        
+      </span>
+      <span class="navbar-text">
+        <a class=" nav-link me-1" ></a>
+        
+      </span>
     </div>
-  </nav>
- 
+  </div>
+</nav>
+<div *ngIf="existingToken" class=" container">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card border-primary  mb-5 mt-2">
+        <div class="card-header text-primary">Users</div>
+        <div class="card-body text-primary">
+          <p class="card-text">users number : <strong>{{usersNumber}}</strong> </p>
 
-<router-outlet> </router-outlet>
 
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-success mb-5 mt-2">
+        
+        <div class="card-header text-success">Products</div>
+        <div class="card-body text-success">
+          <p class="card-text">Products number : <strong>{{productsNumber}}</strong> </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-danger mb-5 mt-2">
+        <div class="card-header text-danger">Categories</div>
+        <div class="card-body text-danger">
+          <p class="card-text">Categories number : <strong>{{categoriesNumber}}</strong> </p>
+        </div>
+      </div>
+    </div>
+    
+  </div>
 
-
-
+</div>
+<div class="container" id="main-container">
+  <router-outlet> </router-outlet>
+</div>

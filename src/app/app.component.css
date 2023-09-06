@@ -1,0 +1,6 @@
+.custom-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Vertically center items within the navbar */
+    width: 100%; /* Ensure the navbar takes up the full width */
+  }

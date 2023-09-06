@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
-import { UserLogin } from './user.model';
+import { UserLogin } from '../users/user.model';
 import { StorageService } from '../../services/storage-service.service';
 
 @Component({
@@ -16,6 +16,7 @@ export class LoginFormComponent implements OnInit {
   isLoggedIn: boolean;
   isLoginFailed: boolean;
   errorMessage: any;
+  isAdmin: boolean;
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -27,10 +28,17 @@ export class LoginFormComponent implements OnInit {
   ngOnInit(): void {
     if (this.storageService.isLoggedIn()) {
       this.isLoggedIn = true;
-     }
+    }
 
     if (this.isLoggedIn) {
-      this.router.navigate(['/products'])
+      this.isAdmin=this.storageService.checkAdmin();
+      if(this.isAdmin){
+        this.router.navigateByUrl('/dashboard');
+      }
+        else{
+          this.router.navigateByUrl('/products');
+        }
+      
     }
 
     this.loginForm = this.fb.group({
@@ -49,7 +57,12 @@ export class LoginFormComponent implements OnInit {
         this.storageService.saveUser(data);
         this.isLoginFailed = false;
         this.isLoggedIn = true;
-        this.router.navigateByUrl('/products');
+       
+        
+        
+      
+        
+        this.reloadPage()
       },
       error: err => {
         console.log(err);

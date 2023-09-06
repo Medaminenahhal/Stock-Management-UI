@@ -9,8 +9,11 @@ export class CategoryService {
     private apiServiceUrl = environment.apiBaseUrl;
     
     constructor(private http: HttpClient){ }
+    public getAllCategoriesPages(page:number,size:number):Observable<Category[]>{
+        return this.http.get<Category[]>(`${this.apiServiceUrl}/api/category?page=${page}&size=${size}`)
+    }
     public getAllCategories():Observable<Category[]>{
-        return this.http.get<Category[]>(`${this.apiServiceUrl}/api/category`)
+        return this.http.get<Category[]>(`${this.apiServiceUrl}/api/category/list`)
     }
     public getCategory (category_id:number):Observable<any>{
         return this.http.get<Category>(`${this.apiServiceUrl}/api/category/${category_id}`)

@@ -6,6 +6,9 @@ import { CategoryService } from 'src/services/category.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { StorageService } from 'src/services/storage-service.service';
+import { Order } from '../order/order.model';
+import { OrderService } from 'src/services/order.service';
 
 @Component({
   selector: 'app-products',
@@ -23,7 +26,7 @@ export class ProductsComponent {
     name: ''
   };
   
-  
+
   product: Product = {
     id:null,
     name: "",
@@ -42,26 +45,69 @@ export class ProductsComponent {
     price: null,
     category_id:null
   };
+  order : Order={
+     id:null,
+     quantity:null,
+     product_id:null,
+     user_id:null
+  }
   productsNumber: number;
+  isAdmin: boolean;
+  page=0
+  size=4
+  addedOrder: Order;
+  user_id: number;
+  selectedProductId:number
+  showAlert: boolean = false;
+  showAlertForEdit: boolean = false;
+  showAlertForDelete: boolean = false;
+  
+  constructor(private router: Router, private productService: ProductService, private categoryService: CategoryService, private storageService:StorageService,private orderService:OrderService) { }
+  searchTerm: string = ''; // Add this property
 
-  constructor(private router: Router, private productService: ProductService, private categoryService: CategoryService) { }
+  searchProducts(): void {
+    this.page=0
+      this.productService.getAllProducts(this.page, this.size, this.searchTerm).subscribe(
+          {
+              next: (response: any) => {
+                  this.products = response.products;
+                  this.productsNumber = response.totalPages;
+              },
+              error: (error: HttpErrorResponse) => { alert(error.message); }
+          }
+      );
+  }
   ngOnInit() {
+    this.user_id=this.storageService.takeId();
+    this.isAdmin = this.storageService.checkAdmin();
     const currentUrl : string = window.location.href;
   console.log('Current URL:', currentUrl);
     const token = window.sessionStorage.getItem("auth-user");
     if(token === null) {
       this.router.navigateByUrl('/signup')
     } 
+    else{
     this.getAllProducts();
     this.getAllCategories();
+       }
+  }
+  getPageNumbers(): number[] {  
+   return Array.from({ length: this.productsNumber }, (_, index) => index);
+  }
+
+  changePage(pageNumber: number): void {
+    this.page = pageNumber;
+    this.getAllProducts();
   }
   public getAllProducts(): void {
-    this.productService.getAllProducts().subscribe(
+   
+    this.productService.getAllProducts(this.page,this.size,this.searchTerm).subscribe(
       {
-        next: (response: Product[]) => {
-           this.products = response;
+        next: (response: any) => {
+           this.products = response.products;
             console.log(this.products);
-            this.productsNumber = this.products.length;
+            this.productsNumber = response.totalPages;
+            console.log(this.productsNumber);
             
          },
         error: (error: HttpErrorResponse) => { alert(error.message); }
@@ -71,8 +117,9 @@ export class ProductsComponent {
   public getAllCategories(): void {
     this.categoryService.getAllCategories().subscribe(
       {
-        next: (response: Category[]) => 
-        { this.categories = response;
+        next: (response: any) => 
+        { 
+          this.categories = response; 
           console.log(this.categories);
           
          },
@@ -87,7 +134,7 @@ export class ProductsComponent {
     
   }
 
-  public onAddProduct(addForm: NgForm): void {
+  public onAddProduct(addForm : NgForm): void {
     const priceText: string = addForm.value.price;
     console.log(priceText);
     addForm.value.price = parseFloat(priceText);
@@ -95,21 +142,14 @@ export class ProductsComponent {
     console.log(addForm.value);
     console.log("category id :", addForm.value.category.id);
 
-   /* let category_: Subscription = this.categoryService.getCategory(parseInt(this.inputCategoryId as string, 10)).subscribe(
-      {
-        next: (res: Category) => {
-          this.category = res
-        },
-        error: (error: HttpErrorResponse) => { alert(error.message); }
-      }
-    );*/
     const newProduct: Product = {
       name: addForm.value.name,
       price: addForm.value.price,
+      quantity: addForm.value.quantity,
      category_id:addForm.value.category.id
       
-    };
-
+   };
+   
     this.productService.addProduct(newProduct).subscribe(
       {
         next: (response:Product) => {
@@ -117,6 +157,42 @@ export class ProductsComponent {
           console.log(response);
           this.getAllProducts();
           addForm.reset();
+          this.showAlert = true;
+          this.hideAlertAfterTimeout();
+          //
+           
+          
+        },
+        error: (error: HttpErrorResponse) => { alert(error.message); }
+      }
+    );
+  }
+  public onAddOrder(addOrderForm: NgForm): void {
+    const quantity: number = addOrderForm.value.quantity;
+    console.log(quantity);
+    document.getElementById('add-order-form')?.click();
+    console.log(addOrderForm.value);
+
+    const newOrder: Order = {
+      quantity: addOrderForm.value.quantity,
+      product_id:this.selectedProductId,
+      user_id:this.user_id
+      
+    };
+    console.log("new order ", newOrder);
+    
+
+    this.orderService.addOrder(newOrder).subscribe(
+      {
+        next: (response:Order) => {
+          console.log("I am in subscribe => ", addOrderForm.value);
+          console.log(response);
+          this.getAllProducts();
+          addOrderForm.reset();
+          this.showAlert = true;
+          this.hideAlertAfterTimeout();
+          //window.location.reload();
+         
         },
         error: (error: HttpErrorResponse) => { alert(error.message); }
       }
@@ -128,11 +204,13 @@ export class ProductsComponent {
     document.getElementById('update-product-form')?.click();
     
     console.log("update : ",editForm.value);
+    
 
     const updatedProduct: Product = {
       id: editForm.value.id,
       name: editForm.value.name,
       price: editForm.value.price,
+      quantity: editForm.value.price,
       category_id:editForm.value.category.id
       
     };
@@ -144,7 +222,10 @@ export class ProductsComponent {
       { this.product = response;
         console.log("updated prod : " + updatedProduct.name);
         console.log("On update id : " + editForm.value.id);
+       
+        this.showAlertForEdit = true;
         this.getAllProducts();
+        this.hideAlertAfterTimeout();
         
        },
       error:  (error: HttpErrorResponse) => { alert(error.message); }
@@ -156,7 +237,11 @@ export class ProductsComponent {
       {
         next: (response:void) => {
           console.log(response);
+          
+          this.showAlertForDelete = true;
           this.getAllProducts();
+          this.hideAlertAfterTimeout();
+          //window.location.reload();
           
         },
         error: (error: HttpErrorResponse) => { alert(error.message); }
@@ -172,6 +257,7 @@ export class ProductsComponent {
     button.setAttribute('data-toggle', 'modal');
     if (mode === 'add') {
       button.setAttribute('data-target', '#addProduct');
+      
     }
 
     if (mode === 'delete') {
@@ -182,9 +268,32 @@ export class ProductsComponent {
       this.editProduct=product;
       button.setAttribute('data-target', '#updateProduct');
     }
+    if (mode === 'addOrder') {
+      this.selectedProductId = product.id;
+      button.setAttribute('data-target', '#addOrder');
+      
+    }
     container?.appendChild(button);
     button.click();
 
+  }
+  hideAlertAfterTimeout() {
+    setTimeout(() => {
+      this.showAlert = false;
+      window.location.reload();
+    }, 3000);
+  }
+  hideAlertEditAfterTimeout() {
+    setTimeout(() => {
+      this.showAlertForEdit = false;
+      window.location.reload();
+    }, 3000);
+  }
+  hideAlertDeleteAfterTimeout() {
+    setTimeout(() => {
+      this.showAlertForDelete = false;
+      window.location.reload();
+    }, 3000);
   }
  
 

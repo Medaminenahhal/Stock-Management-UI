@@ -1,21 +1,30 @@
-<div class="d-flex justify-content-center">
-  <div class="card border-danger mb-3" style="max-width: 18rem;" >
-    <div class="card-header">Products</div>
-    <div class="card-body text-danger">
-      <p class="card-text">products number :</p>
-      <h5 class="card-title">{{productsNumber}}</h5>
-      
-    </div>
-  </div>
-  </div>
+
 <div class="container" id = "main-container">
-    <table class="table table-hover">
+  <div *ngIf="showAlert" class="alert alert-success" role="alert">
+    Product added successfully!
+  </div>
+  <div *ngIf="showAlertForDelete" class="alert alert-danger" role="alert">
+    Product deleted successfully!
+  </div>
+  <div *ngIf="showAlertForEdit" class="alert alert-success" role="alert">
+    Product edited successfully!
+  </div>
+  <div class="d-flex">
+    <input  class="form-control me-2" type="text" [(ngModel)]="searchTerm"   (keyup)="searchProducts()" placeholder="Search" aria-label="Search"  >
+    
+    <button  *ngIf ="isAdmin" class="btn btn-outline-primary" (click)="onOpenModal(null, 'add')"  >Add </button>
+  </div>
+  
+ <table class="table table-hover">
       <thead>
         <tr>
           <th scope="col">Name</th>
           <th scope="col">Price</th>
+          <th scope="col">Created At :</th>
+          <th scope="col"> Updated At : </th>
           <th scope="col">Category</th>
-          <th scope="col" style="text-align: center;">Actions</th>
+          <th scope="col">Quantity</th>
+          <th scope="col" style="text-align: center;">Order here</th>
         </tr>
         
       </thead>
@@ -24,27 +33,32 @@
           
           <td>{{product.name}}</td>
           <td>{{product.price}} dh</td>
+          <td>{{ product.datecreation| date:'yyyy-MM-dd HH:mm' }}</td>
+          <td>{{ product.datemodification | date :'yyyy-MM-dd HH:mm' : 'Never updated' }}</td>
+          
           <td>
-            <div *ngFor="let category of categories">
-              <div *ngIf="category.id === product.category_id">
-                {{ category.name }}
-              </div>
-            </div>
+           {{product.category.name}}
           </td>
+          <td>{{ product.quantity  }}</td>
           
-          
-          
-          <td style="display: flex; justify-content: space-around;">
+          <td   style="display: flex; justify-content: space-around;">
             
-            <button (click)="onOpenModal(product, 'update')" class="btn btn-warning" style="border-radius: 5px;"  data-toggle="modal" data-target="#updateProductModal"><i class="fa-solid fa-pen-to-square"></i></button>
-            <button (click)="onOpenModal(product, 'delete')"class="btn btn-danger"  style="border-radius: 5px;"><i class="fa-solid fa-trash-can"></i></button>
+            <button *ngIf ="isAdmin" (click)="onOpenModal(product, 'update')" class="btn btn-outline-warning" style="border-radius: 5px;"  data-toggle="modal" data-target="#updateProductModal"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button *ngIf ="isAdmin" (click)="onOpenModal(product, 'delete')"class="btn btn-outline-danger"  style="border-radius: 5px;"><i class="fa-solid fa-trash-can"></i></button>
+            <button (click)="onOpenModal(product, 'addOrder')" class="btn btn-outline-info"  ><i class="fa-solid fa-cart-shopping"></i></button>
           </td>
         </tr>
         
       </tbody>
 
     </table>
-    <button class="btn btn-primary"><a class="nav-link" style="color: aliceblue; border-radius: 5px;" (click)="onOpenModal(null, 'add')">Add Product <span class="sr-only">(current)</span></a></button>
+    <div class="text-center">
+      <ul class="pagination">
+        <li class="page-item" *ngFor="let pageNumber of getPageNumbers()" [class.active]="pageNumber === page">
+          <a class="page-link mx-1" (click)="changePage(pageNumber)">{{ pageNumber + 1 }}</a>
+        </li>
+      </ul>
+    </div>
     <!-- addProductModal -->
     <div class="modal fade" id="addProduct" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -66,6 +80,10 @@
                  <input type="text" ngModel name="price" class="form-control" id="price" placeholder="Price" required>
               </div>
               <div class="form-group">
+                <label for="price">Quantity</label>
+                <input type="text" ngModel name="quantity" class="form-control" id="quantity" placeholder="quantity" required>
+             </div>
+              <div class="form-group">
                  <label for="category_id">Category</label>
                  <select class="form-select mt-1"  aria-label="Default select example" (ngModelChange)="onSelectCategory($event)" name="category"  [ngModel]="selectedCategory">
                   <option *ngFor="let category of categories" value={{category.id}} [ngValue]="category">
@@ -77,14 +95,14 @@
               
               <div class="modal-footer">
                  <button type="button" id="add-product-form" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                 <button  [disabled]="addForm.invalid" type="submit"    >Save changes</button>
+                 <button  [disabled]="addForm.invalid" type="submit" >Save changes</button>
               </div>
               </form>
           </div>
         </div>
       </div>
     </div>
-    </div>
+    
     <!-- updateProductModal -->
     <div class="modal fade" id="updateProduct" tabindex="-1" role="dialog" aria-labelledby="employeeEditModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -106,6 +124,10 @@
                      <label for="price">Price</label>
                      <input type="text" ngModel="{{editProduct.price}}" name="price" class="form-control" id="price" placeholder="Price">
                   </div>
+                  <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="text" ngModel="{{editProduct.quantity}}" name="quantity" class="form-control" id="quantity" placeholder="quantity">
+                 </div>
                   <div class="form-group">
                     <label for="category_id">Category</label>
                     <select class="form-select" (ngModelChange)="onSelectCategory($event)" name="category"  [ngModel]="selectedCategory">
@@ -141,5 +163,46 @@
                </div>
             </div>
          </div>
+        </div>
+      </div> 
+      
+       <!-- add order -->
+      <div class="modal fade" id="addOrder" tabindex="-1" role="dialog" aria-labelledby="addOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addOrderModalLabel">Add Order</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form #addOrderForm="ngForm" (ngSubmit)="onAddOrder(addOrderForm)">
+                
+              <div class="form-group">
+                  <label for="price">Quantity</label>
+                  <input type="number" ngModel name="quantity" class="form-control" id="quantity" placeholder="quantity" required>
+                   
+                </div>
+                <div class="form-group">
+
+                <input type="hidden" [ngModel]="selectedProductId" name="id" class="form-control" aria-describedby="emailHelp" placeholder="Role">
+                </div>
+                <div class="modal-footer">
+                   <button type="button" id="add-order-form" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                   <button  [disabled]="addOrderForm.invalid" type="submit"    >Save changes</button>
+                   
+                </div>
+                
+                </form> 
+            </div>
+          </div>
+        </div>
       </div>
+     
     </div>
+
+
+    
+    
+

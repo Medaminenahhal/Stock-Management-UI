@@ -1,0 +1,76 @@
+<div class="d-flex justify-content-center">
+
+  <div class="container" id="main-container">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Username</th>
+          <th scope="col">Role</th>
+          <th *ngIf="isAdmin" scope="col" style="text-align: center;">Actions</th>
+        </tr>
+
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+
+          <td>{{user.username}}</td>
+          <td>{{user.role}} </td>
+
+          <td *ngIf="isAdmin" style="display: flex; justify-content: space-around;">
+
+            <button (click)="onOpenModal(user, 'update')" class="btn btn-warning" style="border-radius: 5px;"
+              data-toggle="modal" data-target="#updateUserModal"><i class="fa-solid fa-pen-to-square"></i></button>
+
+          </td>
+        </tr>
+
+      </tbody>
+
+
+
+    </table>
+
+
+    <div class="text-center">
+      <ul class="pagination">
+        <li class="page-item" *ngFor="let pageNumber of getPageNumbers()" [class.active]="pageNumber === page">
+          <a class="page-link mx-1" (click)="changePage(pageNumber)">{{ pageNumber + 1 }}</a>
+        </li>
+      </ul>
+    </div>
+    <!-- updateUserModal -->
+    <div class="modal fade" id="updateUser" tabindex="-1" role="dialog" aria-labelledby="employeeEditModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="updateUserModalLabel">Edit User {{editUser?.username}}</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form #editForm="ngForm">
+              <div class="form-group">
+
+                <input type="hidden" ngModel="{{editUser.id}}" name="id" class="form-control" id="name"
+                  aria-describedby="emailHelp" placeholder="Role">
+              </div>
+
+              <div class="form-group">
+                <label for="name">Name {{editUser.username}}</label>
+                <input type="text" ngModel="{{editUser.role}}" name="role" class="form-control" id="name"
+                  aria-describedby="emailHelp" placeholder="Role">
+              </div>
+
+
+              <div class="modal-footer">
+                <button type="button" id="add-User-form" data-dismiss="modal" class="btn btn-secondary">Close</button>
+                <button (click)="onUpdateUser(editForm)" data-dismiss="modal" class="btn btn-primary">Save
+                  changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>

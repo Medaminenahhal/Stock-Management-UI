@@ -1,0 +1,56 @@
+<div class="container" id = "main-container">
+  <div *ngIf="showAlert" class="alert alert-success" role="alert">
+    Validated successfully!
+  </div>
+<table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Product</th>
+        <th scope="col">Product's Price</th>
+        <th scope="col">Quantity</th>
+        <th scope="col">Total Price</th>
+        <th scope="col">Date of Order</th>
+        <th scope="col">Username</th>
+        <th scope="col">state</th>
+        
+        <th *ngIf="isAdmin"scope="col">Validate the order</th>
+       
+        
+      </tr>
+      
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of orders">
+        
+        <td>{{ order.produit.name }}</td>
+        <td>{{ order.produit.price}}</td>
+        <td>{{order.quantity}} </td>
+        <td>{{order.price}} dh</td>
+        <td>{{ order.dateDeCommande | date:'yyyy-MM-dd HH:mm' }}</td>
+        <td>{{order.user.username}} </td>
+        <td><strong >{{order.state? order.state : 'Not validated yet' }}</strong></td>
+        
+        
+        
+        
+        
+        <td *ngIf ="isAdmin"  style="display: flex; justify-content: space-around;">
+          
+          <button  (click)="updateOrder(order)" class="btn btn-success"  style="border-radius: 5px;"><i class="fa-solid fa-check"></i></button>
+
+        </td>
+      </tr>
+      
+    </tbody>
+
+  </table>
+  
+  <div class="text-center">
+    <ul class="pagination">
+      <li class="page-item" *ngFor="let pageNumber of getPageNumbers()" [class.active]="pageNumber === page">
+        <a class="page-link mx-1" (click)="changePage(pageNumber)">{{ pageNumber + 1 }}</a>
+      </li>
+    </ul>
+  </div>
+</div>
+  

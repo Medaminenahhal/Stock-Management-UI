@@ -4,6 +4,7 @@ import { Category } from './category.model';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { StorageService } from 'src/services/storage-service.service';
 
 
 @Component({
@@ -12,6 +13,8 @@ import { Router } from '@angular/router';
   styleUrls: ['../app.component.css', '../../../node_modules/bootstrap/dist/css/bootstrap.css']
 })
 export class CategoriesComponent {
+  page=0
+  size=4
   title: any;
   selectedCategory!:Category
   categories: Category[]=[];
@@ -26,30 +29,45 @@ export class CategoriesComponent {
     name: ''
   };
   deleteCategory: Category;
-  private _category: Category;
+  
   categoriesNumber: number;
+  isAdmin: boolean;
+  showAlert: boolean;
+  
   
   
 
 
-  constructor( private categoryService: CategoryService,private router : Router) { }
+  constructor( private categoryService: CategoryService,private router : Router,private storageService:StorageService) { }
   ngOnInit() {
+    this.isAdmin = this.storageService.checkAdmin();
     const token = window.sessionStorage.getItem("auth-user");
     if(token === null) {
       this.router.navigateByUrl("/signup")
     }
-      this.getAllCategories();
-     
-
+    else{
+      this.getAllCategoriesPages();
+    }
+     }
+  getPageNumbers(): number[] {  
+   
     
+
+    return Array.from({ length: this.categoriesNumber }, (_, index) => index);
   }
-  public getAllCategories(): void {
-    this.categoryService.getAllCategories().subscribe(
+
+  changePage(pageNumber: number): void {
+    this.page = pageNumber;
+    this.getAllCategoriesPages();
+  }
+  public getAllCategoriesPages(): void {
+    this.categoryService.getAllCategoriesPages(this.page,this.size).subscribe(
       {
-        next: (response: Category[]) => {
-           this.categories = response;
+        next: (response: any) => {
+           this.categories = response.categories;
+           this.categoriesNumber=response.totalPages
             console.log(this.categories);
-            this.categoriesNumber = this.categories.length;
+            
             
          },
         error: (error: HttpErrorResponse) => { alert(error.message); }
@@ -61,7 +79,7 @@ export class CategoriesComponent {
     console.log(category)
     this.category.id=category.id
     console.log("this.product.category_id; " +this.category.id);
-    
+   
   }
 
   public onAddCategory(addForm: NgForm): void {
@@ -89,8 +107,11 @@ export class CategoriesComponent {
         next: (response:Category) => {
           console.log("I am in subscribe => ", addForm.value);
           console.log(response);
-          this.getAllCategories();
+          this.getAllCategoriesPages();
           addForm.reset();
+          this.showAlert = true;
+          this.hideAlertAfterTimeout();
+        
         },
         error: (error: HttpErrorResponse) => { alert(error.message); }
       }
@@ -118,7 +139,7 @@ export class CategoriesComponent {
       { this.updatedCategory = response;
         console.log("updated prod : " + updatedCategory.name);
         console.log("On update id : " + editForm.value.id);
-        this.getAllCategories();
+        this.getAllCategoriesPages();
         
        },
       error:  (error: HttpErrorResponse) => { alert(error.message); }
@@ -132,8 +153,8 @@ export class CategoriesComponent {
       {
         next: (response:void) => {
           console.log(response);
-          this.getAllCategories();
-          
+          this.getAllCategoriesPages();
+          window.location.reload();
         },
         error: (error: HttpErrorResponse) => { alert(error.message); }
       }
@@ -167,6 +188,12 @@ export class CategoriesComponent {
     
 
 
+  }
+  hideAlertAfterTimeout() {
+    setTimeout(() => {
+      this.showAlert = false;
+      window.location.reload();
+    }, 3000);
   }
 
   }

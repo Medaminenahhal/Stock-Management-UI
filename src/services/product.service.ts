@@ -8,11 +8,11 @@ export class ProductService {
     private apiServiceUrl = environment.apiBaseUrl;
     
     constructor(private http: HttpClient){ }
-    public getAllProducts():Observable<Product[]>{
-        return this.http.get<Product[]>(`${this.apiServiceUrl}/api/produits`)
+    public getAllProducts(page: number, size: number, search: string): Observable<Product[]> {
+        return this.http.get<Product[]>(`${this.apiServiceUrl}/api/produits?page=${page}&size=${size}&search=${search}`);
     }
+    
    
-
     public addProduct(product : Product):Observable<Product>{
         return this.http.post<Product>(`${this.apiServiceUrl}/api/produits`,product);
     }
